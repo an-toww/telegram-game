@@ -1,43 +1,86 @@
+/* ✅ Поддержка светлой и тёмной темы */
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
-    background-color: white; /* Белый фон на всех страницах */
-    font-family: Arial, sans-serif;
-    background-color: white !important; /* Принудительный белый фон */
-    color: black; /* Чёрный текст, чтобы всё было видно */
+    font-family: 'Arial', sans-serif;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* ✅ Верхняя панель с фильтрами */
 #controls {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
-    gap: 10px;
     padding: 10px;
-    background: white; /* Белый фон для верхней панели */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
-    border-bottom: 1px solid #ccc; /* Легкая тень для отделения панели */
+    transition: background 0.3s ease, border-bottom 0.3s ease;
 }
 
-button {
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    background: #007bff;
+/* ✅ Стили для кнопки "📍 Найти меня" */
+#location-btn {
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 5px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+#location-btn:hover {
+    background-color: #0056b3;
 }
 
-button:hover {
-    background: #0056b3;
-}
-
-label {
+/* ✅ Стили для фильтров */
+select, button {
     font-size: 16px;
-    color: black; /* Черный текст, чтобы он был виден */
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* ✅ Чекбоксы с кастомным стилем */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.custom-checkbox {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    margin-right: 5px;
+    position: relative;
+}
+
+input[type="checkbox"] {
+    display: none;
+}
+
+input[type="checkbox"]:checked + .custom-checkbox {
+    background-color: #007bff;
+}
+
+input[type="checkbox"]:checked + .custom-checkbox::after {
+    content: '✔';
+    color: white;
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    font-size: 14px;
+}
+
+/* ✅ Карта */
+#map {
+    width: 100%;
+    height: calc(100vh - 60px);
+    margin-top: 60px;
 }
