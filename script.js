@@ -26,7 +26,7 @@ function addCourts(filteredCourts = courts) {
   filteredCourts.forEach(function(court) {
     let marker = L.marker([court.lat, court.lon])
       .addTo(map)
-      .bindPopup(`<b>${court.name}</b>`);
+      .bindPopup(`<b>${court.name}</b><br><a href="court.html?court=${court.name}">Подробнее</a>`);
     courtMarkers.push(marker);
   });
 }
@@ -62,4 +62,62 @@ function applyFilters() {
   });
 
   addCourts(filteredCourts);
+}
+
+// ✅ 🔹 Добавляем чат (Firebase)
+
+// 🔹 Подключаем Firebase (замени своими данными)
+const firebaseConfig = {
+    apiKey: "AIzaSyCG2R1rwajqL2jo97RJjKJex3UIG_S2eYA",
+  authDomain: "courtmapchats.firebaseapp.com",
+  databaseURL: "https://courtmapchats-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "courtmapchats",
+  storageBucket: "courtmapchats.firebasestorage.app",
+  messagingSenderId: "425867947036",
+  appId: "1:425867947036:web:3133054a859c9e5d1543d9"
+};
+
+// 🔹 Инициализация Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+} else {
+    firebase.app();
+}
+
+const database = firebase.database();
+
+// 🔹 Получаем ID корта из URL (например, court.html?court=ПаркГорького)
+const urlParams = new URLSearchParams(window.location.search);
+const courtId = urlParams.get("court") || "default";
+
+// 🔹 Функция отправки сообщений
+function sendMessage() {
+    const messageInput = document.getElementById("message-input");
+    const message = messageInput.value.trim();
+
+    if (message !== "") {
+        database.ref("chats/" + courtId).push({
+            message: message,
+            timestamp: Date.now()
+        });
+
+        messageInput.value = ""; // Очистка поля ввода после отправки
+    }
+}
+
+// 🔹 Функция загрузки сообщений в реальном времени
+function loadMessages() {
+    database.ref("chats/" + courtId).on("child_added", function(snapshot) {
+        const msg = snapshot.val();
+        const messageContainer = document.createElement("div");
+        messageContainer.classList.add("message");
+        messageContainer.innerText = msg.message;
+        document.getElementById("chat-box").appendChild(messageContainer);
+        document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
+    });
+}
+
+// 🔹 Загружаем чат при загрузке страницы корта
+if (document.getElementById("chat-box")) {
+    loadMessages();
 }
