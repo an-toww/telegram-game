@@ -77,6 +77,20 @@
         <label>
             <input type="checkbox" id="filter-courts" onclick="toggleFilter()"> Показывать только ближайшие корты
         </label>
+        <select id="surface-filter" onchange="applyFilters()">
+    <option value="all">Любое покрытие</option>
+    <option value="hard">Хард</option>
+    <option value="clay">Грунт</option>
+    <option value="grass">Трава</option>
+</select>
+
+<label>
+    <input type="checkbox" id="lights-filter" onclick="applyFilters()"> Освещение
+</label>
+
+<label>
+    <input type="checkbox" id="locker-filter" onclick="applyFilters()"> Раздевалки
+</label>
     </div>
 
     <div id="map"></div>
@@ -89,11 +103,11 @@
         }).addTo(map);
 
         var courts = [
-            { name: "Парк Горького", lat: 55.7308, lon: 37.6034, info: "Открытый корт, бесплатный, освещение." },
-            { name: "Лужники", lat: 55.7158, lon: 37.5537, info: "Бесплатные корты, есть раздевалки." },
-            { name: "Сокольники", lat: 55.7942, lon: 37.6742, info: "Открытые корты, мягкое покрытие." },
-            { name: "Филевский парк", lat: 55.7451, lon: 37.4673, info: "Бесплатные корты, доступ открыт." }
-        ];
+    { name: "Парк Горького", lat: 55.7308, lon: 37.6034, info: "Открытый корт", surface: "hard", lights: true, locker: false },
+    { name: "Лужники", lat: 55.7158, lon: 37.5537, info: "Крытые корты", surface: "clay", lights: true, locker: true },
+    { name: "Сокольники", lat: 55.7942, lon: 37.6742, info: "Открытые корты", surface: "grass", lights: false, locker: false },
+    { name: "Филевский парк", lat: 55.7451, lon: 37.4673, info: "Бесплатные корты", surface: "hard", lights: true, locker: true }
+];
 
         var userMarker;
         var courtMarkers = [];
