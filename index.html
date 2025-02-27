@@ -8,166 +8,191 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* ✅ Делаем фон белым везде */
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
+            background-color: white !important; /* Принудительный белый фон */
+            color: black; /* Черный текст */
+            font-family: Arial, sans-serif;
         }
-        #map {
-            width: 100%;
-            height: 90vh;
-        }
+
+        /* ✅ Делаем верхнюю панель белой */
         #controls {
             text-align: center;
             padding: 10px;
+            background: white !important; /* Белый фон панели */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid #ccc; /* Тонкая граница */
         }
+
+        /* ✅ Карта с отступом от верхней панели */
+        #map {
+            width: 100%;
+            height: calc(100vh - 50px);
+            margin-top: 50px; /* Отступ, чтобы панель не перекрывала карту */
+        }
+
+        /* ✅ Кнопки */
         button {
             padding: 10px;
             font-size: 16px;
             cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* ✅ Чекбокс */
+        label {
+            font-size: 16px;
+            color: black; /* Черный текст */
         }
     </style>
 </head>
-    <script>
-    if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.expand(); // Разворачиваем Web App на весь экран
-        Telegram.WebApp.ready();
-        Telegram.WebApp.setBackgroundColor("white"); // Фиксируем белый фон
-        Telegram.WebApp.setHeaderColor("white"); // Фиксируем белую верхнюю панель
-    }
-</script>
 <body>
 
+    <!-- ✅ Telegram Web App API -->
+    <script>
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.expand(); // Разворачиваем Web App на весь экран
+            Telegram.WebApp.ready();
+            Telegram.WebApp.setBackgroundColor("#FFFFFF"); // Фиксируем белый фон
+            Telegram.WebApp.setHeaderColor("#FFFFFF"); // Фиксируем белую верхнюю панель
+        }
+    </script>
+
     <div id="controls">
-    <button onclick="getLocation()">📍 Найти меня</button>
-    <label>
-        <input type="checkbox" id="filter-courts" onclick="toggleFilter()"> Показывать только ближайшие корты
-    </label>
-</div>
-<div id="map"></div>
+        <button onclick="getLocation()">📍 Найти меня</button>
+        <label>
+            <input type="checkbox" id="filter-courts" onclick="toggleFilter()"> Показывать только ближайшие корты
+        </label>
+    </div>
+
+    <div id="map"></div>
 
     <script>
-    var map = L.map('map').setView([55.751244, 37.618423], 11); // Москва
+        var map = L.map('map').setView([55.751244, 37.618423], 11); // Москва
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-    var courts = [
-        { name: "Парк Горького", lat: 55.7308, lon: 37.6034, info: "Открытый корт, бесплатный, освещение." },
-        { name: "Лужники", lat: 55.7158, lon: 37.5537, info: "Бесплатные корты, есть раздевалки." },
-        { name: "Сокольники", lat: 55.7942, lon: 37.6742, info: "Открытые корты, мягкое покрытие." },
-        { name: "Филевский парк", lat: 55.7451, lon: 37.4673, info: "Бесплатные корты, доступ открыт." }
-    ];
+        var courts = [
+            { name: "Парк Горького", lat: 55.7308, lon: 37.6034, info: "Открытый корт, бесплатный, освещение." },
+            { name: "Лужники", lat: 55.7158, lon: 37.5537, info: "Бесплатные корты, есть раздевалки." },
+            { name: "Сокольники", lat: 55.7942, lon: 37.6742, info: "Открытые корты, мягкое покрытие." },
+            { name: "Филевский парк", lat: 55.7451, lon: 37.4673, info: "Бесплатные корты, доступ открыт." }
+        ];
 
-    var userMarker;
-    var courtMarkers = [];
+        var userMarker;
+        var courtMarkers = [];
 
-    // Добавляем все корты
-    function addCourts(filteredCourts = courts) {
-        courtMarkers.forEach(marker => map.removeLayer(marker)); // Удаляем старые метки
-        courtMarkers = [];
+        function addCourts(filteredCourts = courts) {
+            courtMarkers.forEach(marker => map.removeLayer(marker));
+            courtMarkers = [];
 
-        filteredCourts.forEach(court => {
-            let marker = L.marker([court.lat, court.lon])
-                .addTo(map)
-                .bindPopup(`<b>${court.name}</b><br>${court.info}<br><a href="court.html?name=${court.name}">Подробнее</a>`);
-            courtMarkers.push(marker);
-        });
-    }
-
-    addCourts(); // Изначально добавляем все корты
-
-    // 📍 Получаем геолокацию пользователя
-    function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
-                const userLat = position.coords.latitude;
-                const userLon = position.coords.longitude;
-
-                if (userMarker) {
-                    map.removeLayer(userMarker);
-                }
-
-                // Центрируем карту на пользователе
-                map.setView([userLat, userLon], 14);
-
-                // Добавляем метку пользователя
-                userMarker = L.marker([userLat, userLon], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', iconSize: [30, 30] }) })
+            filteredCourts.forEach(court => {
+                let marker = L.marker([court.lat, court.lon])
                     .addTo(map)
-                    .bindPopup("Вы здесь! 📍").openPopup();
-
-                // Проверяем чекбокс
-                if (document.getElementById("filter-courts").checked) {
-                    filterCourts(userLat, userLon);
-                }
-
-            }, error => {
-                alert("Не удалось получить местоположение: " + error.message);
+                    .bindPopup(`<b>${court.name}</b><br>${court.info}<br><a href="court.html?name=${court.name}">Подробнее</a>`);
+                courtMarkers.push(marker);
             });
-        } else {
-            alert("Геолокация не поддерживается вашим браузером");
-        }
-    }
-
-    // Функция расчёта расстояния между точками (формула Хаверсина)
-    function getDistance(lat1, lon1, lat2, lon2) {
-        function toRad(value) {
-            return value * Math.PI / 180;
         }
 
-        const R = 6371; // Радиус Земли в км
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Возвращаем расстояние в км
-    }
+        addCourts();
 
-    // Фильтрация кортов в радиусе 5 км
-    function filterCourts(userLat, userLon) {
-        let filteredCourts = courts.filter(court => getDistance(userLat, userLon, court.lat, court.lon) <= 5);
-        addCourts(filteredCourts);
-    }
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
 
-    // Переключение фильтра
-    function toggleFilter() {
-        if (userMarker) {
-            const userLat = userMarker.getLatLng().lat;
-            const userLon = userMarker.getLatLng().lng;
-            if (document.getElementById("filter-courts").checked) {
-                filterCourts(userLat, userLon);
+                    if (userMarker) {
+                        map.removeLayer(userMarker);
+                    }
+
+                    map.setView([userLat, userLon], 14);
+
+                    userMarker = L.marker([userLat, userLon], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', iconSize: [30, 30] }) })
+                        .addTo(map)
+                        .bindPopup("Вы здесь! 📍").openPopup();
+
+                    if (document.getElementById("filter-courts").checked) {
+                        filterCourts(userLat, userLon);
+                    }
+
+                }, error => {
+                    alert("Не удалось получить местоположение: " + error.message);
+                });
             } else {
-                addCourts();
+                alert("Геолокация не поддерживается вашим браузером");
             }
         }
-    }
 
-    // 📍 Если Telegram WebApp доступен, получаем геопозицию через него
-    if (window.Telegram && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
-        Telegram.WebApp.expand();
-        Telegram.WebApp.ready();
+        function getDistance(lat1, lon1, lat2, lon2) {
+            function toRad(value) {
+                return value * Math.PI / 180;
+            }
 
-        Telegram.WebApp.requestGeoLocation((location) => {
-            if (location) {
-                const userLat = location.latitude;
-                const userLon = location.longitude;
-                map.setView([userLat, userLon], 14);
+            const R = 6371;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
 
-                userMarker = L.marker([userLat, userLon], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', iconSize: [30, 30] }) })
-                    .addTo(map)
-                    .bindPopup("Вы здесь! 📍").openPopup();
+        function filterCourts(userLat, userLon) {
+            let filteredCourts = courts.filter(court => getDistance(userLat, userLon, court.lat, court.lon) <= 5);
+            addCourts(filteredCourts);
+        }
 
+        function toggleFilter() {
+            if (userMarker) {
+                const userLat = userMarker.getLatLng().lat;
+                const userLon = userMarker.getLatLng().lng;
                 if (document.getElementById("filter-courts").checked) {
                     filterCourts(userLat, userLon);
+                } else {
+                    addCourts();
                 }
             }
-        });
-    }
+        }
 
-</script>
+        if (window.Telegram && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
+            Telegram.WebApp.expand();
+            Telegram.WebApp.ready();
+
+            Telegram.WebApp.requestGeoLocation((location) => {
+                if (location) {
+                    const userLat = location.latitude;
+                    const userLon = location.longitude;
+                    map.setView([userLat, userLon], 14);
+
+                    userMarker = L.marker([userLat, userLon], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', iconSize: [30, 30] }) })
+                        .addTo(map)
+                        .bindPopup("Вы здесь! 📍").openPopup();
+
+                    if (document.getElementById("filter-courts").checked) {
+                        filterCourts(userLat, userLon);
+                    }
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>
