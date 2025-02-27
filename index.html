@@ -1,54 +1,56 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Теннисные корты Москвы</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Теннисные корты Москвы</title>
+  <!-- Подключаем стили Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Подключаем наш CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Подключаем скрипты Leaflet и Telegram Web App API -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
-    <!-- Telegram Web App API -->
-    <script>
-        if (window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.expand();
-            Telegram.WebApp.ready();
+  <!-- Инициализация Telegram Web App: задаем тему -->
+  <script>
+    if (window.Telegram && Telegram.WebApp) {
+      Telegram.WebApp.expand();
+      Telegram.WebApp.ready();
+      // Передаем тему в data-атрибут body, чтобы CSS мог подстроиться
+      document.body.dataset.theme = Telegram.WebApp.colorScheme || "light";
+    }
+  </script>
 
-            // Автоопределение темы Telegram
-            const theme = Telegram.WebApp.colorScheme;
-            document.body.dataset.theme = theme;
-        }
-    </script>
+  <!-- Верхняя панель с фильтрами -->
+  <div id="controls">
+    <button id="location-btn" onclick="getLocation()">📍</button>
+    
+    <select id="surface-filter" onchange="applyFilters()">
+      <option value="all">🎾 Любое покрытие</option>
+      <option value="hard">🛠 Хард</option>
+      <option value="clay">🏜 Грунт</option>
+      <option value="grass">🌱 Трава</option>
+    </select>
+    
+    <label class="checkbox-container">
+      <input type="checkbox" id="lights-filter" onclick="applyFilters()">
+      <span class="custom-checkbox"></span> 💡
+    </label>
+    
+    <label class="checkbox-container">
+      <input type="checkbox" id="locker-filter" onclick="applyFilters()">
+      <span class="custom-checkbox"></span> 🚿
+    </label>
+  </div>
 
-    <!-- Верхняя панель с фильтрами -->
-    <div id="controls">
-        <button id="location-btn" onclick="getLocation()">📍</button>
+  <!-- Контейнер для карты -->
+  <div id="map"></div>
 
-        <select id="surface-filter" onchange="applyFilters()">
-            <option value="all">🎾 Любое покрытие</option>
-            <option value="hard">🛠 Хард</option>
-            <option value="clay">🏜 Грунт</option>
-            <option value="grass">🌱 Трава</option>
-        </select>
-
-        <label class="checkbox-container">
-            <input type="checkbox" id="lights-filter" onclick="applyFilters()">
-            <span class="custom-checkbox"></span> 💡
-        </label>
-
-        <label class="checkbox-container">
-            <input type="checkbox" id="locker-filter" onclick="applyFilters()">
-            <span class="custom-checkbox"></span> 🚿
-        </label>
-    </div>
-
-    <!-- Карта -->
-    <div id="map"></div>
-
-    <script src="script.js"></script>
+  <!-- Подключаем наш JavaScript -->
+  <script src="script.js"></script>
 
 </body>
 </html>
