@@ -4,6 +4,8 @@ body, html {
     height: 100%;
     background-color: white; /* Белый фон на всех страницах */
     font-family: Arial, sans-serif;
+    background-color: white !important; /* Принудительный белый фон */
+    color: black; /* Чёрный текст, чтобы всё было видно */
 }
 
 #controls {
