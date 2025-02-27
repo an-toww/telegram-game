@@ -2,127 +2,30 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Теннисные корты Москвы</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* ✅ Поддержка светлой и тёмной темы */
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Arial', sans-serif;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        /* ✅ Верхняя панель с фильтрами */
-        #controls {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            transition: background 0.3s ease, border-bottom 0.3s ease;
-        }
-
-        /* ✅ Стили для кнопки "📍 Найти меня" */
-        #location-btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        #location-btn:hover {
-            background-color: #0056b3;
-        }
-
-        /* ✅ Стили для фильтров */
-        select, button {
-            font-size: 16px;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-        /* ✅ Чекбоксы с кастомным стилем */
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .custom-checkbox {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #007bff;
-            border-radius: 5px;
-            margin-right: 5px;
-            position: relative;
-        }
-
-        input[type="checkbox"] {
-            display: none;
-        }
-
-        input[type="checkbox"]:checked + .custom-checkbox {
-            background-color: #007bff;
-        }
-
-        input[type="checkbox"]:checked + .custom-checkbox::after {
-            content: '✔';
-            color: white;
-            position: absolute;
-            left: 5px;
-            top: 2px;
-            font-size: 14px;
-        }
-
-        /* ✅ Карта */
-        #map {
-            width: 100%;
-            height: calc(100vh - 60px);
-            margin-top: 60px;
-        }
-    </style>
 </head>
 <body>
 
-    <!-- ✅ Telegram Web App API -->
+    <!-- Telegram Web App API -->
     <script>
         if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.expand();
             Telegram.WebApp.ready();
 
-            // Определяем, какая тема у Telegram
+            // Автоопределение темы Telegram
             const theme = Telegram.WebApp.colorScheme;
-            if (theme === "dark") {
-                document.body.style.backgroundColor = "#222";
-                document.body.style.color = "#fff";
-                document.querySelector("#controls").style.background = "#333";
-                document.querySelector("#controls").style.borderBottom = "2px solid #555";
-            } else {
-                document.body.style.backgroundColor = "#fff";
-                document.body.style.color = "#000";
-                document.querySelector("#controls").style.background = "#fff";
-                document.querySelector("#controls").style.borderBottom = "2px solid #ddd";
-            }
+            document.body.dataset.theme = theme;
         }
     </script>
 
+    <!-- Верхняя панель с фильтрами -->
     <div id="controls">
-        <button id="location-btn" onclick="getLocation()">📍 Найти меня</button>
+        <button id="location-btn" onclick="getLocation()">📍</button>
 
         <select id="surface-filter" onchange="applyFilters()">
             <option value="all">🎾 Любое покрытие</option>
@@ -133,82 +36,19 @@
 
         <label class="checkbox-container">
             <input type="checkbox" id="lights-filter" onclick="applyFilters()">
-            <span class="custom-checkbox"></span> 💡 Освещение
+            <span class="custom-checkbox"></span> 💡
         </label>
 
         <label class="checkbox-container">
             <input type="checkbox" id="locker-filter" onclick="applyFilters()">
-            <span class="custom-checkbox"></span> 🚿 Раздевалки
+            <span class="custom-checkbox"></span> 🚿
         </label>
     </div>
 
+    <!-- Карта -->
     <div id="map"></div>
 
-    <script>
-        var map = L.map('map').setView([55.751244, 37.618423], 11); // Москва
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        var courts = [
-            { name: "Парк Горького", lat: 55.7308, lon: 37.6034, info: "Открытый корт", surface: "hard", lights: true, locker: false },
-            { name: "Лужники", lat: 55.7158, lon: 37.5537, info: "Крытые корты", surface: "clay", lights: true, locker: true },
-            { name: "Сокольники", lat: 55.7942, lon: 37.6742, info: "Открытые корты", surface: "grass", lights: false, locker: false },
-            { name: "Филевский парк", lat: 55.7451, lon: 37.4673, info: "Бесплатные корты", surface: "hard", lights: true, locker: true }
-        ];
-
-        var userMarker;
-        var courtMarkers = [];
-
-        function addCourts(filteredCourts = courts) {
-            courtMarkers.forEach(marker => map.removeLayer(marker));
-            courtMarkers = [];
-
-            filteredCourts.forEach(court => {
-                let marker = L.marker([court.lat, court.lon])
-                    .addTo(map)
-                    .bindPopup(`<b>${court.name}</b><br>${court.info}<br><b>Покрытие:</b> ${court.surface}<br><b>Освещение:</b> ${court.lights ? "Есть" : "Нет"}<br><b>Раздевалки:</b> ${court.locker ? "Есть" : "Нет"}<br><a href="court.html?name=${court.name}">Подробнее</a>`);
-                courtMarkers.push(marker);
-            });
-        }
-
-        addCourts();
-
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const userLat = position.coords.latitude;
-                    const userLon = position.coords.longitude;
-
-                    if (userMarker) {
-                        map.removeLayer(userMarker);
-                    }
-
-                    map.setView([userLat, userLon], 14);
-
-                    userMarker = L.marker([userLat, userLon], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', iconSize: [30, 30] }) })
-                        .addTo(map)
-                        .bindPopup("Вы здесь! 📍").openPopup();
-                });
-            }
-        }
-
-        function applyFilters() {
-            let selectedSurface = document.getElementById("surface-filter").value;
-            let filterLights = document.getElementById("lights-filter").checked;
-            let filterLocker = document.getElementById("locker-filter").checked;
-
-            let filteredCourts = courts.filter(court => {
-                let matchesSurface = (selectedSurface === "all" || court.surface === selectedSurface);
-                let matchesLights = (!filterLights || court.lights);
-                let matchesLocker = (!filterLocker || court.locker);
-                return matchesSurface && matchesLights && matchesLocker;
-            });
-
-            addCourts(filteredCourts);
-        }
-    </script>
+    <script src="script.js"></script>
 
 </body>
 </html>
