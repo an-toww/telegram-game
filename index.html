@@ -28,6 +28,14 @@
         }
     </style>
 </head>
+    <script>
+    if (window.Telegram && Telegram.WebApp) {
+        Telegram.WebApp.expand(); // Разворачиваем Web App на весь экран
+        Telegram.WebApp.ready();
+        Telegram.WebApp.setBackgroundColor("white"); // Фиксируем белый фон
+        Telegram.WebApp.setHeaderColor("white"); // Фиксируем белую верхнюю панель
+    }
+</script>
 <body>
 
     <div id="controls">
