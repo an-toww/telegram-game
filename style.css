@@ -10,3 +10,16 @@ button {
     cursor: pointer;
     margin-top: 20px;
 }
+#controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
