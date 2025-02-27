@@ -6,6 +6,7 @@
     <title>Теннисные корты Москвы</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -14,36 +15,84 @@
         }
         #map {
             width: 100%;
-            height: 100vh;
+            height: 90vh;
+        }
+        #controls {
+            text-align: center;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
+    <div id="controls">
+        <button onclick="getLocation()">📍 Найти меня</button>
+    </div>
     <div id="map"></div>
 
     <script>
-        // Создаем карту Москвы
-        var map = L.map('map').setView([55.751244, 37.618423], 11);
+        var map = L.map('map').setView([55.751244, 37.618423], 11); // Москва
 
-        // Добавляем тайлы OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Данные по бесплатным кортам (можно расширять)
         var courts = [
             { name: "Парк Горького", lat: 55.7308, lon: 37.6034, info: "Открытый корт, бесплатный, освещение." },
             { name: "Лужники", lat: 55.7158, lon: 37.5537, info: "Бесплатные корты, есть раздевалки." },
             { name: "Сокольники", lat: 55.7942, lon: 37.6742, info: "Открытые корты, мягкое покрытие." }
         ];
 
-        // Добавляем метки на карту
         courts.forEach(court => {
             L.marker([court.lat, court.lon])
                 .addTo(map)
                 .bindPopup(`<b>${court.name}</b><br>${court.info}<br><a href="court.html?name=${court.name}">Подробнее</a>`);
         });
+
+        // 📍 Получаем геолокацию пользователя
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+
+                    // Центрируем карту на пользователе
+                    map.setView([userLat, userLon], 14);
+
+                    // Добавляем метку на карту
+                    L.marker([userLat, userLon], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', iconSize: [30, 30] }) })
+                        .addTo(map)
+                        .bindPopup("Вы здесь! 📍").openPopup();
+
+                }, error => {
+                    alert("Не удалось получить местоположение: " + error.message);
+                });
+            } else {
+                alert("Геолокация не поддерживается вашим браузером");
+            }
+        }
+
+        // 📍 Если Telegram WebApp доступен, получаем геопозицию через него
+        if (window.Telegram && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
+            Telegram.WebApp.expand();
+            Telegram.WebApp.ready();
+
+            Telegram.WebApp.requestGeoLocation((location) => {
+                if (location) {
+                    const userLat = location.latitude;
+                    const userLon = location.longitude;
+                    map.setView([userLat, userLon], 14);
+                    L.marker([userLat, userLon], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', iconSize: [30, 30] }) })
+                        .addTo(map)
+                        .bindPopup("Вы здесь! 📍").openPopup();
+                }
+            });
+        }
     </script>
 
 </body>
