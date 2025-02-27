@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информация о корте</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        img { width: 100%; max-width: 400px; border-radius: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1 id="court-name">Название корта</h1>
+    <p id="court-info">Здесь будет информация о корте.</p>
+    <img id="court-img" src="" alt="Фото корта">
+
+    <script>
+        // Получаем параметры из URL
+        const params = new URLSearchParams(window.location.search);
+        const courtName = params.get('name');
+
+        // Данные о кортах
+        const courtData = {
+            "Парк Горького": {
+                info: "Бесплатный корт, покрытие хард, есть освещение.",
+                img: "https://upload.wikimedia.org/wikipedia/commons/9/90/Gorky_Park_2014-09-14_10-15.JPG"
+            },
+            "Лужники": {
+                info: "Корты с мягким покрытием, есть раздевалки.",
+                img: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Luzhniki_2017.jpg"
+            },
+            "Сокольники": {
+                info: "Открытые бесплатные корты, теннисная школа.",
+                img: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Sokolniki_Park.jpg"
+            }
+        };
+
+        // Обновляем информацию
+        if (courtData[courtName]) {
+            document.getElementById("court-name").innerText = courtName;
+            document.getElementById("court-info").innerText = courtData[courtName].info;
+            document.getElementById("court-img").src = courtData[courtName].img;
+        } else {
+            document.getElementById("court-name").innerText = "Корт не найден";
+            document.getElementById("court-info").innerText = "Информации пока нет.";
+        }
+    </script>
+
+</body>
+</html>
