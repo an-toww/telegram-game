@@ -1,25 +1,41 @@
-body {
-    text-align: center;
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: white; /* Белый фон на всех страницах */
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
 }
 
-button {
-    padding: 15px 30px;
-    font-size: 20px;
-    cursor: pointer;
-    margin-top: 20px;
-}
 #controls {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
     padding: 10px;
-    background: white;
+    background: white; /* Белый фон для верхней панели */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
+    border-bottom: 1px solid #ccc; /* Легкая тень для отделения панели */
+}
+
+button {
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+label {
+    font-size: 16px;
+    color: black; /* Черный текст, чтобы он был виден */
 }
