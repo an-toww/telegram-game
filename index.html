@@ -3,15 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Игрушка в Telegram</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <title>Теннисные корты Москвы</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
-    <h1>Кликай, чтобы набрать очки!</h1>
-    <button id="play">Нажми меня!</button>
-    <p id="score">Очки: 0</p>
 
-    <script src="game.js"></script>
+    <div id="map"></div>
+
+    <script>
+        // Создаем карту Москвы
+        var map = L.map('map').setView([55.751244, 37.618423], 11);
+
+        // Добавляем тайлы OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Данные по бесплатным кортам (можно расширять)
+        var courts = [
+            { name: "Парк Горького", lat: 55.7308, lon: 37.6034, info: "Открытый корт, бесплатный, освещение." },
+            { name: "Лужники", lat: 55.7158, lon: 37.5537, info: "Бесплатные корты, есть раздевалки." },
+            { name: "Сокольники", lat: 55.7942, lon: 37.6742, info: "Открытые корты, мягкое покрытие." }
+        ];
+
+        // Добавляем метки на карту
+        courts.forEach(court => {
+            L.marker([court.lat, court.lon])
+                .addTo(map)
+                .bindPopup(`<b>${court.name}</b><br>${court.info}<br><a href="court.html?name=${court.name}">Подробнее</a>`);
+        });
+    </script>
+
 </body>
 </html>
