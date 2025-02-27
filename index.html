@@ -185,6 +185,31 @@
                 }
             }
         }
+        function applyFilters() {
+    let selectedSurface = document.getElementById("surface-filter").value;
+    let filterLights = document.getElementById("lights-filter").checked;
+    let filterLocker = document.getElementById("locker-filter").checked;
+
+    let filteredCourts = courts.filter(court => {
+        let matchesSurface = (selectedSurface === "all" || court.surface === selectedSurface);
+        let matchesLights = (!filterLights || court.lights);
+        let matchesLocker = (!filterLocker || court.locker);
+        return matchesSurface && matchesLights && matchesLocker;
+    });
+
+    addCourts(filteredCourts);
+}
+        function addCourts(filteredCourts = courts) {
+    courtMarkers.forEach(marker => map.removeLayer(marker));
+    courtMarkers = [];
+
+    filteredCourts.forEach(court => {
+        let marker = L.marker([court.lat, court.lon])
+            .addTo(map)
+            .bindPopup(`<b>${court.name}</b><br>${court.info}<br><b>Покрытие:</b> ${court.surface}<br><b>Освещение:</b> ${court.lights ? "Есть" : "Нет"}<br><b>Раздевалки:</b> ${court.locker ? "Есть" : "Нет"}<br><a href="court.html?name=${court.name}">Подробнее</a>`);
+        courtMarkers.push(marker);
+    });
+}
 
         if (window.Telegram && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
             Telegram.WebApp.expand();
