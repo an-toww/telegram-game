@@ -14,17 +14,19 @@
 </head>
 <body>
 
-  <!-- Инициализация Telegram Web App: задаем тему -->
+  <!-- ✅ Принудительно делаем фон белым -->
   <script>
     if (window.Telegram && Telegram.WebApp) {
-      Telegram.WebApp.expand();
-      Telegram.WebApp.ready();
-      // Передаем тему в data-атрибут body, чтобы CSS мог подстроиться
-      document.body.dataset.theme = Telegram.WebApp.colorScheme || "light";
+        Telegram.WebApp.expand();
+        Telegram.WebApp.ready();
+        Telegram.WebApp.setBackgroundColor("#FFFFFF"); // Принудительно белый фон
+        Telegram.WebApp.setHeaderColor("#FFFFFF"); // Белая верхняя панель
+        document.body.style.backgroundColor = "#FFFFFF";
+        document.body.style.color = "#000";
     }
   </script>
 
-  <!-- Верхняя панель с фильтрами -->
+  <!-- ✅ Верхняя панель с фильтрами -->
   <div id="controls">
     <button id="location-btn" onclick="getLocation()">📍</button>
     
@@ -46,10 +48,10 @@
     </label>
   </div>
 
-  <!-- Контейнер для карты -->
+  <!-- ✅ Контейнер для карты -->
   <div id="map"></div>
 
-  <!-- Подключаем наш JavaScript -->
+  <!-- ✅ Подключаем наш JavaScript -->
   <script src="script.js"></script>
 
 </body>
