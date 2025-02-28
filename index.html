@@ -4,12 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Теннисные корты Москвы</title>
-  <!-- Подключаем стили Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <!-- Подключаем наш CSS -->
+  <!-- Подключаем стили -->
   <link rel="stylesheet" href="style.css">
-  <!-- Подключаем скрипты Leaflet и Telegram Web App API -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Подключаем API Яндекс.Карт -->
+  <script src="https://api-maps.yandex.ru/2.1/?apikey=988640b3-d0cd-41b7-aaa9-52d0bb6423b6&lang=ru_RU"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -19,8 +17,8 @@
     if (window.Telegram && Telegram.WebApp) {
         Telegram.WebApp.expand();
         Telegram.WebApp.ready();
-        Telegram.WebApp.setBackgroundColor("#FFFFFF"); // Принудительно белый фон
-        Telegram.WebApp.setHeaderColor("#FFFFFF"); // Белая верхняя панель
+        Telegram.WebApp.setBackgroundColor("#FFFFFF");
+        Telegram.WebApp.setHeaderColor("#FFFFFF");
         document.body.style.backgroundColor = "#FFFFFF";
         document.body.style.color = "#000";
     }
@@ -28,9 +26,9 @@
 
   <!-- ✅ Верхняя панель с фильтрами -->
   <div id="controls">
-    <button id="location-btn" onclick="getLocation()">📍</button>
+    <button id="location-btn">📍</button>
     
-    <select id="surface-filter" onchange="applyFilters()">
+    <select id="surface-filter">
       <option value="all">🎾 Любое покрытие</option>
       <option value="hard">🛠 Хард</option>
       <option value="clay">🏜 Грунт</option>
@@ -38,12 +36,12 @@
     </select>
     
     <label class="checkbox-container">
-      <input type="checkbox" id="lights-filter" onclick="applyFilters()">
+      <input type="checkbox" id="lights-filter">
       <span class="custom-checkbox"></span> 💡
     </label>
     
     <label class="checkbox-container">
-      <input type="checkbox" id="locker-filter" onclick="applyFilters()">
+      <input type="checkbox" id="locker-filter">
       <span class="custom-checkbox"></span> 🚿
     </label>
   </div>
