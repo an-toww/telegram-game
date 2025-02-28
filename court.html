@@ -2,25 +2,42 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Информация о корте</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        img { width: 100%; max-width: 400px; border-radius: 10px; margin-top: 10px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+
+    <script>
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.expand();
+            Telegram.WebApp.ready();
+            Telegram.WebApp.setBackgroundColor("#FFFFFF"); // Фиксируем белый фон
+            Telegram.WebApp.setHeaderColor("#FFFFFF");
+            document.body.style.backgroundColor = "#FFFFFF";
+            document.body.style.color = "#000";
+        }
+    </script>
 
     <h1 id="court-name">Название корта</h1>
     <p id="court-info">Здесь будет информация о корте.</p>
     <img id="court-img" src="" alt="Фото корта">
 
+    <!-- ✅ Контейнер чата -->
+    <div id="chat-container">
+        <h3>Чат корта</h3>
+        <div id="chat-box"></div>
+        <input type="text" id="message-input" placeholder="Введите сообщение...">
+        <button onclick="sendMessage()">Отправить</button>
+    </div>
+
     <script>
-        // Получаем параметры из URL
+        // ✅ Получаем параметры из URL
         const params = new URLSearchParams(window.location.search);
         const courtName = params.get('name');
 
-        // Данные о кортах
+        // ✅ Данные о кортах (можно вынести в отдельный JSON)
         const courtData = {
             "Парк Горького": {
                 info: "Бесплатный корт, покрытие хард, есть освещение.",
@@ -36,7 +53,7 @@
             }
         };
 
-        // Обновляем информацию
+        // ✅ Обновляем информацию на странице
         if (courtData[courtName]) {
             document.getElementById("court-name").innerText = courtName;
             document.getElementById("court-info").innerText = courtData[courtName].info;
@@ -45,13 +62,9 @@
             document.getElementById("court-name").innerText = "Корт не найден";
             document.getElementById("court-info").innerText = "Информации пока нет.";
         }
-        <div id="chat-container">
-    <h3>Чат корта</h3>
-    <div id="chat-box"></div>
-    <input type="text" id="message-input" placeholder="Введите сообщение...">
-    <button onclick="sendMessage()">Отправить</button>
-</div>
     </script>
+
+    <script src="script.js"></script>
 
 </body>
 </html>
