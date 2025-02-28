@@ -1,11 +1,11 @@
-// Инициализация карты с центром на Москве
+// ✅ Инициализация карты с центром на Москве
 var map = L.map('map').setView([55.751244, 37.618423], 11);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Массив с данными о кортах и их характеристиками
+// ✅ Массив с данными о кортах и их характеристиками
 var courts = [
   { name: "Парк Горького", lat: 55.7308, lon: 37.6034, surface: "hard", lights: true, locker: false },
   { name: "Лужники", lat: 55.7158, lon: 37.5537, surface: "clay", lights: true, locker: true },
@@ -16,7 +16,7 @@ var courts = [
 var userMarker;
 var courtMarkers = [];
 
-// Функция для добавления маркеров кортов на карту
+// ✅ Функция для добавления маркеров кортов на карту
 function addCourts(filteredCourts = courts) {
   courtMarkers.forEach(function(marker) {
     map.removeLayer(marker);
@@ -26,14 +26,14 @@ function addCourts(filteredCourts = courts) {
   filteredCourts.forEach(function(court) {
     let marker = L.marker([court.lat, court.lon])
       .addTo(map)
-      .bindPopup(`<b>${court.name}</b><br><a href="court.html?court=${court.name}">Подробнее</a>`);
+      .bindPopup(`<b>${court.name}</b><br><a href="court.html?name=${court.name}">Подробнее</a>`);
     courtMarkers.push(marker);
   });
 }
 
 addCourts();
 
-// Получаем геолокацию пользователя и центрируем карту
+// ✅ Получаем геолокацию пользователя и центрируем карту
 function getLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
@@ -48,7 +48,7 @@ function getLocation() {
   }
 }
 
-// Применяем фильтры по характеристикам
+// ✅ Применяем фильтры по характеристикам
 function applyFilters() {
   let selectedSurface = document.getElementById("surface-filter").value;
   let filterLights = document.getElementById("lights-filter").checked;
@@ -64,33 +64,29 @@ function applyFilters() {
   addCourts(filteredCourts);
 }
 
-// ✅ 🔹 Добавляем чат (Firebase)
-
-// 🔹 Подключаем Firebase (замени своими данными)
+// ✅ Подключение Firebase (замени своими данными)
 const firebaseConfig = {
     apiKey: "AIzaSyCG2R1rwajqL2jo97RJjKJex3UIG_S2eYA",
-  authDomain: "courtmapchats.firebaseapp.com",
-  databaseURL: "https://courtmapchats-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "courtmapchats",
-  storageBucket: "courtmapchats.firebasestorage.app",
-  messagingSenderId: "425867947036",
-  appId: "1:425867947036:web:3133054a859c9e5d1543d9"
+    authDomain: "courtmapchats.firebaseapp.com",
+    databaseURL: "https://courtmapchats-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "courtmapchats",
+    storageBucket: "courtmapchats.firebasestorage.app",
+    messagingSenderId: "425867947036",
+    appId: "1:425867947036:web:3133054a859c9e5d1543d9"
 };
 
-// 🔹 Инициализация Firebase
+// ✅ Инициализация Firebase
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
-} else {
-    firebase.app();
 }
 
 const database = firebase.database();
 
-// 🔹 Получаем ID корта из URL (например, court.html?court=ПаркГорького)
+// ✅ Получаем ID корта из URL (фикс)
 const urlParams = new URLSearchParams(window.location.search);
-const courtId = urlParams.get("court") || "default";
+const courtId = urlParams.get("name") || "default";
 
-// 🔹 Функция отправки сообщений
+// ✅ Функция отправки сообщений
 function sendMessage() {
     const messageInput = document.getElementById("message-input");
     const message = messageInput.value.trim();
@@ -105,19 +101,23 @@ function sendMessage() {
     }
 }
 
-// 🔹 Функция загрузки сообщений в реальном времени
+// ✅ Функция загрузки сообщений в реальном времени (фикс)
 function loadMessages() {
     database.ref("chats/" + courtId).on("child_added", function(snapshot) {
         const msg = snapshot.val();
         const messageContainer = document.createElement("div");
         messageContainer.classList.add("message");
-        messageContainer.innerText = msg.message;
+
+        // ✅ Добавляем время отправки
+        const time = new Date(msg.timestamp).toLocaleTimeString();
+        messageContainer.innerHTML = `<b>${time}</b>: ${msg.message}`;
+
         document.getElementById("chat-box").appendChild(messageContainer);
         document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
     });
 }
 
-// 🔹 Загружаем чат при загрузке страницы корта
+// ✅ Загружаем чат при загрузке страницы корта
 if (document.getElementById("chat-box")) {
     loadMessages();
 }
