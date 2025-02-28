@@ -28,8 +28,10 @@
     <div id="chat-container">
         <h3>Чат корта</h3>
         <div id="chat-box"></div>
-        <input type="text" id="message-input" placeholder="Введите сообщение...">
-        <button onclick="sendMessage()">Отправить</button>
+        <form id="message-form">
+            <input type="text" id="message-input" placeholder="Введите сообщение...">
+            <button type="submit" id="send-button">Отправить</button>
+        </form>
     </div>
 
     <script>
