@@ -1,4 +1,5 @@
 // ✅ Инициализация карты Яндекс.Карт
+console.log("Загружаем Яндекс.Карты...");
 ymaps.ready(init);
 
 function init() {
