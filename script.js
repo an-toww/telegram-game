@@ -121,3 +121,31 @@ function loadMessages() {
 if (document.getElementById("chat-box")) {
     loadMessages();
 }
+// ✅ Авто-прокрутка при открытии клавиатуры
+document.getElementById("message-input").addEventListener("focus", function() {
+    setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+    }, 300);
+});
+
+// ✅ Авто-прокрутка чата при новом сообщении
+function scrollChatToBottom() {
+    const chatBox = document.getElementById("chat-box");
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ✅ Загружаем сообщения и прокручиваем вниз
+function loadMessages() {
+    database.ref("chats/" + courtId).on("child_added", function(snapshot) {
+        const msg = snapshot.val();
+        const messageContainer = document.createElement("div");
+        messageContainer.classList.add("message");
+
+        // ✅ Добавляем время отправки
+        const time = new Date(msg.timestamp).toLocaleTimeString();
+        messageContainer.innerHTML = `<b>${time}</b>: ${msg.message}`;
+
+        document.getElementById("chat-box").appendChild(messageContainer);
+        scrollChatToBottom(); // ✅ Прокручиваем вниз
+    });
+}
