@@ -9,20 +9,21 @@
 </head>
 <body>
 
+    <!-- ✅ Принудительное исправление фона -->
     <script>
         if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.expand();
             Telegram.WebApp.ready();
-            Telegram.WebApp.setBackgroundColor("#FFFFFF"); // Фиксируем белый фон
+            Telegram.WebApp.setBackgroundColor("#FFFFFF");
             Telegram.WebApp.setHeaderColor("#FFFFFF");
             document.body.style.backgroundColor = "#FFFFFF";
             document.body.style.color = "#000";
         }
     </script>
 
-    <h1 id="court-name">Название корта</h1>
-    <p id="court-info">Здесь будет информация о корте.</p>
-    <img id="court-img" src="" alt="Фото корта">
+    <h1 id="court-name">Загрузка...</h1>
+    <p id="court-info">Загружаем информацию...</p>
+    <img id="court-img" src="" alt="Фото корта" style="max-width: 100%; border-radius: 10px; margin-top: 10px;">
 
     <!-- ✅ Контейнер чата -->
     <div id="chat-container">
@@ -39,30 +40,35 @@
         const params = new URLSearchParams(window.location.search);
         const courtName = params.get('name');
 
-        // ✅ Данные о кортах (можно вынести в отдельный JSON)
-        const courtData = {
-            "Парк Горького": {
-                info: "Бесплатный корт, покрытие хард, есть освещение.",
-                img: "https://upload.wikimedia.org/wikipedia/commons/9/90/Gorky_Park_2014-09-14_10-15.JPG"
-            },
-            "Лужники": {
-                info: "Корты с мягким покрытием, есть раздевалки.",
-                img: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Luzhniki_2017.jpg"
-            },
-            "Сокольники": {
-                info: "Открытые бесплатные корты, теннисная школа.",
-                img: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Sokolniki_Park.jpg"
-            }
-        };
-
-        // ✅ Обновляем информацию на странице
-        if (courtData[courtName]) {
-            document.getElementById("court-name").innerText = courtName;
-            document.getElementById("court-info").innerText = courtData[courtName].info;
-            document.getElementById("court-img").src = courtData[courtName].img;
+        if (!courtName) {
+            document.getElementById("court-name").innerText = "Ошибка";
+            document.getElementById("court-info").innerText = "Название корта не передано.";
         } else {
-            document.getElementById("court-name").innerText = "Корт не найден";
-            document.getElementById("court-info").innerText = "Информации пока нет.";
+            // ✅ Загружаем информацию о корте из OpenStreetMap API
+            fetch("https://overpass-api.de/api/interpreter?data=[out:json];node['leisure'='pitch']['sport'='tennis']['access'='public']['fee'='no'];out;")
+                .then(response => response.json())
+                .then(data => {
+                    let court = data.elements.find(el => el.tags.name === courtName);
+                    if (court) {
+                        document.getElementById("court-name").innerText = courtName;
+                        document.getElementById("court-info").innerText = court.tags.description || "Нет информации.";
+
+                        // ✅ Если у корта есть изображение (например, тег `image`), загружаем его
+                        if (court.tags.image) {
+                            document.getElementById("court-img").src = court.tags.image;
+                        } else {
+                            document.getElementById("court-img").style.display = "none"; // Скрываем картинку, если её нет
+                        }
+                    } else {
+                        document.getElementById("court-name").innerText = "Корт не найден";
+                        document.getElementById("court-info").innerText = "Информации пока нет.";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("court-name").innerText = "Ошибка";
+                    document.getElementById("court-info").innerText = "Ошибка загрузки данных.";
+                    console.error("Ошибка загрузки корта:", error);
+                });
         }
     </script>
 
