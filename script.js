@@ -1,10 +1,10 @@
-// ✅ Инициализация карты Яндекс.Карт
+// ✅ Загружаем Яндекс.Карты
 console.log("Загружаем Яндекс.Карты...");
 ymaps.ready(init);
 
 let myMap;
 let clusterer;
-let allCourts = []; // Полный список кортов
+let allCourts = []; // Список всех кортов
 
 function init() {
     myMap = new ymaps.Map("map", {
@@ -20,12 +20,21 @@ function init() {
 
     myMap.geoObjects.add(clusterer);
 
-    // ✅ Загружаем корты из JSON
-    fetch("courts.json")
+    // ✅ Запрашиваем бесплатные теннисные корты через OpenStreetMap API
+    fetch("https://overpass-api.de/api/interpreter?data=[out:json];node['leisure'='pitch']['sport'='tennis']['access'='public']['fee'='no'](55.5,37.3,56.0,38.0);out;")
         .then(response => response.json())
         .then(data => {
-            allCourts = data; // Сохраняем полный список
-            addCourts(allCourts); // Добавляем все корты на карту
+            allCourts = data.elements.map(el => ({
+                name: el.tags.name || "Бесплатный теннисный корт",
+                lat: el.lat,
+                lon: el.lon,
+                surface: el.tags.surface || "unknown", // Покрытие
+                lights: el.tags.lit === "yes",
+                locker: el.tags.changing_rooms === "yes",
+                info: el.tags.description || "Нет дополнительной информации"
+            }));
+
+            addCourts(allCourts); // Добавляем корты на карту
         })
         .catch(error => console.error("Ошибка загрузки кортов:", error));
 
@@ -46,13 +55,19 @@ function init() {
     document.getElementById("locker-filter").addEventListener("change", applyFilters);
 }
 
-// ✅ Функция для добавления кортов на карту (с учетом фильтров)
+// ✅ Функция добавления кортов на карту
 function addCourts(courts) {
     clusterer.removeAll(); // Очищаем старые метки
 
     courts.forEach(court => {
         let placemark = new ymaps.Placemark([court.lat, court.lon], {
-            balloonContent: `<b>${court.name}</b><br>${court.info}<br><a href="court.html?name=${court.name}">Подробнее</a>`
+            balloonContent: `
+                <b>${court.name}</b><br>
+                Покрытие: ${court.surface}<br>
+                Освещение: ${court.lights ? "✅ Есть" : "❌ Нет"}<br>
+                Раздевалки: ${court.locker ? "✅ Есть" : "❌ Нет"}<br>
+                <a href="court.html?name=${encodeURIComponent(court.name)}">Подробнее</a>
+            `
         }, {
             preset: "islands#redIcon"
         });
