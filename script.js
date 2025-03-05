@@ -4,7 +4,8 @@ ymaps.ready(init);
 let myMap;
 let clusterer;
 let allCourts = [];
-const YANDEX_API_KEY = "988640b3-d0cd-41b7-aaa9-52d0bb6423b6" // 🔹 Вставь свой API-ключ
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6SpY-42Fp2lTrjUPLEXtkJogH1n7c_j-KaXMW9B19wnW9geukapdUSy6U0CJGhmDX6x_TnrjSNNIB/pubhtml"; // 🔹 Вставь ссылку на свою таблицу
+const YANDEX_API_KEY = "988640b3-d0cd-41b7-aaa9-52d0bb6423b6"; // 🔹 Вставь API-ключ Яндекс.Карт
 
 function init() {
     myMap = new ymaps.Map("map", {
@@ -20,31 +21,43 @@ function init() {
 
     myMap.geoObjects.add(clusterer);
 
-    console.log("⏳ Загружаем корты из JSON...");
+    console.log("⏳ Загружаем корты из Google Таблицы...");
+    loadCourtsFromGoogleSheets();
+}
 
-    fetch("courts.json")
-        .then(response => response.json())
-        .then(data => {
-            allCourts = data;
+// ✅ Загружаем данные из Google Таблицы
+function loadCourtsFromGoogleSheets() {
+    fetch(GOOGLE_SHEET_URL)
+        .then(response => response.text())
+        .then(csvText => {
+            allCourts = parseCSV(csvText);
             findMissingCoordinates(allCourts).then(updatedCourts => {
                 allCourts = updatedCourts;
                 addCourts(allCourts);
             });
         })
-        .catch(error => console.error("🚨 Ошибка загрузки кортов:", error));
-
-    document.getElementById("location-btn").addEventListener("click", function() {
-        ymaps.geolocation.get({
-            provider: 'browser',
-            mapStateAutoApply: true
-        }).then(function(result) {
-            myMap.geoObjects.add(result.geoObjects);
-            myMap.setCenter(result.geoObjects.get(0).geometry.getCoordinates(), 14);
-        });
-    });
+        .catch(error => console.error("🚨 Ошибка загрузки данных из Google Sheets:", error));
 }
 
-// ✅ Функция поиска координат для кортов без координат
+// ✅ Конвертируем CSV в массив объектов
+function parseCSV(csvText) {
+    let rows = csvText.split("\n").map(row => row.split(","));
+    let courts = [];
+
+    for (let i = 1; i < rows.length; i++) { // Пропускаем заголовки
+        let [name, address, lat, lon, info] = rows[i];
+        courts.push({
+            name: name.trim(),
+            address: address.trim(),
+            lat: lat ? parseFloat(lat) : null,
+            lon: lon ? parseFloat(lon) : null,
+            info: info.trim()
+        });
+    }
+    return courts;
+}
+
+// ✅ Автоматически находим координаты, если их нет
 async function findMissingCoordinates(courts) {
     let updatedCourts = [];
 
@@ -67,7 +80,7 @@ async function findMissingCoordinates(courts) {
     return updatedCourts;
 }
 
-// ✅ Функция получения координат по адресу через Яндекс API
+// ✅ Получаем координаты по адресу через Яндекс API
 async function getCoordinatesFromAddress(address) {
     try {
         const response = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_API_KEY}&format=json&geocode=${encodeURIComponent(address)}`);
@@ -84,7 +97,7 @@ async function getCoordinatesFromAddress(address) {
     }
 }
 
-// ✅ Функция добавления кортов на карту
+// ✅ Добавляем корты на карту
 function addCourts(courts) {
     clusterer.removeAll();
 
