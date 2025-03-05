@@ -4,6 +4,7 @@ ymaps.ready(init);
 let myMap;
 let clusterer;
 let allCourts = [];
+const YANDEX_API_KEY = "988640b3-d0cd-41b7-aaa9-52d0bb6423b6" // 🔹 Вставь свой API-ключ
 
 function init() {
     myMap = new ymaps.Map("map", {
@@ -19,30 +20,18 @@ function init() {
 
     myMap.geoObjects.add(clusterer);
 
-    console.log("⏳ Загружаем корты...");
+    console.log("⏳ Загружаем корты из JSON...");
 
-    fetch("https://overpass-api.de/api/interpreter?data=[out:json];node['leisure'='pitch']['sport'='tennis']['fee'!='yes'](55.5,37.3,56.0,38.0);out;")
+    fetch("courts.json")
         .then(response => response.json())
         .then(data => {
-            allCourts = data.elements.map(el => ({
-                name: el.tags.name || "Теннисный корт",
-                lat: el.lat,
-                lon: el.lon,
-                info: el.tags.description || "Нет информации"
-            }));
-
-            if (allCourts.length === 0) {
-                console.warn("⚠ Нет данных в OpenStreetMap API, загружаем из JSON...");
-                loadCourtsFromJSON();
-            } else {
-                console.log("✅ Загружены корты из OpenStreetMap:", allCourts);
+            allCourts = data;
+            findMissingCoordinates(allCourts).then(updatedCourts => {
+                allCourts = updatedCourts;
                 addCourts(allCourts);
-            }
+            });
         })
-        .catch(error => {
-            console.error("🚨 Ошибка загрузки OpenStreetMap API:", error);
-            loadCourtsFromJSON();
-        });
+        .catch(error => console.error("🚨 Ошибка загрузки кортов:", error));
 
     document.getElementById("location-btn").addEventListener("click", function() {
         ymaps.geolocation.get({
@@ -55,21 +44,44 @@ function init() {
     });
 }
 
-// ✅ Загружаем JSON, если OpenStreetMap API пустой
-function loadCourtsFromJSON() {
-    fetch("courts.json")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Ошибка загрузки файла courts.json");
+// ✅ Функция поиска координат для кортов без координат
+async function findMissingCoordinates(courts) {
+    let updatedCourts = [];
+
+    for (const court of courts) {
+        if (court.lat === null || court.lon === null) {
+            try {
+                const coords = await getCoordinatesFromAddress(court.address);
+                if (coords) {
+                    court.lat = coords.lat;
+                    court.lon = coords.lon;
+                } else {
+                    console.warn(`⚠ Не удалось найти координаты: ${court.address}`);
+                }
+            } catch (error) {
+                console.error(`🚨 Ошибка при поиске координат: ${court.address}`, error);
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log("✅ Загружены корты из JSON:", data);
-            allCourts = data;
-            addCourts(allCourts);
-        })
-        .catch(error => console.error("🚨 Ошибка загрузки кортов из JSON:", error));
+        }
+        updatedCourts.push(court);
+    }
+    return updatedCourts;
+}
+
+// ✅ Функция получения координат по адресу через Яндекс API
+async function getCoordinatesFromAddress(address) {
+    try {
+        const response = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_API_KEY}&format=json&geocode=${encodeURIComponent(address)}`);
+        const data = await response.json();
+        if (data.response.GeoObjectCollection.featureMember.length > 0) {
+            let coords = data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos.split(" ");
+            return { lat: parseFloat(coords[1]), lon: parseFloat(coords[0]) };
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Ошибка запроса к Яндекс API", error);
+        return null;
+    }
 }
 
 // ✅ Функция добавления кортов на карту
@@ -77,16 +89,22 @@ function addCourts(courts) {
     clusterer.removeAll();
 
     courts.forEach(court => {
-        let placemark = new ymaps.Placemark([court.lat, court.lon], {
-            balloonContent: `
-                <b>${court.name}</b><br>
-                <a href="court.html?name=${encodeURIComponent(court.name)}">Подробнее</a>
-            `
-        }, {
-            preset: "islands#redIcon"
-        });
+        if (court.lat && court.lon) {
+            let placemark = new ymaps.Placemark([court.lat, court.lon], {
+                balloonContent: `
+                    <b>${court.name}</b><br>
+                    📍 ${court.address}<br>
+                    ℹ ${court.info}<br>
+                    <a href="court.html?name=${encodeURIComponent(court.name)}">Подробнее</a>
+                `
+            }, {
+                preset: "islands#redIcon"
+            });
 
-        clusterer.add(placemark);
+            clusterer.add(placemark);
+        } else {
+            console.warn(`⚠ Пропускаем ${court.name}, т.к. нет координат`);
+        }
     });
 
     myMap.geoObjects.add(clusterer);
