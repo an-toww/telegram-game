@@ -4,7 +4,7 @@ ymaps.ready(init);
 let myMap;
 let clusterer;
 let allCourts = [];
-const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6SpY-42Fp2lTrjUPLEXtkJogH1n7c_j-KaXMW9B19wnW9geukapdUSy6U0CJGhmDX6x_TnrjSNNIB/pubhtml"; // 🔹 Вставь ссылку на свою таблицу
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6SpY-42Fp2lTrjUPLEXtkJogH1n7c_j-KaXMW9B19wnW9geukapdUSy6U0CJGhmDX6x_TnrjSNNIB/pub?output=csv"; // 🔹 Вставь ссылку на свою таблицу
 const YANDEX_API_KEY = "988640b3-d0cd-41b7-aaa9-52d0bb6423b6"; // 🔹 Вставь API-ключ Яндекс.Карт
 
 function init() {
