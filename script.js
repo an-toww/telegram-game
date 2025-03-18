@@ -123,3 +123,36 @@ function addCourts(courts) {
     myMap.geoObjects.add(clusterer);
     console.log("✅ Корты добавлены на карту!");
 }
+
+
+// ✅ Обработчик для кнопки "📍 Найти меня"
+document.getElementById("location-btn").addEventListener("click", function () {
+    if (navigator.geolocation) {
+        // Запрашиваем местоположение
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
+
+                // Перемещаем карту к местоположению пользователя
+                myMap.setCenter([userLat, userLon], 15); // 15 — уровень zoom
+
+                // Добавляем метку на карту
+                const userPlacemark = new ymaps.Placemark([userLat, userLon], {
+                    balloonContent: "Вы здесь!"
+                }, {
+                    preset: "islands#blueCircleIcon"
+                });
+
+                myMap.geoObjects.add(userPlacemark);
+                console.log("📍 Местоположение пользователя:", userLat, userLon);
+            },
+            function (error) {
+                console.error("🚨 Ошибка получения местоположения:", error.message);
+                alert("Не удалось определить ваше местоположение. Пожалуйста, проверьте настройки браузера.");
+            }
+        );
+    } else {
+        alert("Ваш браузер не поддерживает Geolocation API.");
+    }
+});
