@@ -28,7 +28,12 @@ function init() {
 // ✅ Загружаем данные из Google Таблицы
 function loadCourtsFromGoogleSheets() {
     fetch(GOOGLE_SHEET_URL)
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Ошибка HTTP: ${response.status}`);
+            }
+            return response.text();
+        })
         .then(csvText => {
             allCourts = parseCSV(csvText);
             findMissingCoordinates(allCourts).then(updatedCourts => {
@@ -36,7 +41,10 @@ function loadCourtsFromGoogleSheets() {
                 addCourts(allCourts);
             });
         })
-        .catch(error => console.error("🚨 Ошибка загрузки данных из Google Sheets:", error));
+        .catch(error => {
+            console.error("🚨 Ошибка загрузки данных из Google Sheets:", error);
+            alert("Не удалось загрузить данные. Пожалуйста, проверьте подключение к интернету.");
+        });
 }
 
 // ✅ Конвертируем CSV в массив объектов
@@ -45,14 +53,18 @@ function parseCSV(csvText) {
     let courts = [];
 
     for (let i = 1; i < rows.length; i++) { // Пропускаем заголовки
-        let [name, address, lat, lon, info] = rows[i];
-        courts.push({
-            name: name.trim(),
-            address: address.trim(),
-            lat: lat ? parseFloat(lat) : null,
-            lon: lon ? parseFloat(lon) : null,
-            info: info.trim()
-        });
+        if (rows[i].length >= 5) { // Проверяем, что в строке достаточно колонок
+            let [name, address, lat, lon, info] = rows[i];
+            courts.push({
+                name: name.trim(),
+                address: address.trim(),
+                lat: lat ? parseFloat(lat) : null,
+                lon: lon ? parseFloat(lon) : null,
+                info: info.trim()
+            });
+        } else {
+            console.warn(`⚠ Пропускаем строку ${i}, т.к. она содержит недостаточно данных`);
+        }
     }
     return courts;
 }
@@ -68,6 +80,7 @@ async function findMissingCoordinates(courts) {
                 if (coords) {
                     court.lat = coords.lat;
                     court.lon = coords.lon;
+                    console.log(`✅ Найдены координаты для ${court.address}: ${court.lat}, ${court.lon}`);
                 } else {
                     console.warn(`⚠ Не удалось найти координаты: ${court.address}`);
                 }
@@ -102,7 +115,7 @@ function addCourts(courts) {
     clusterer.removeAll();
 
     courts.forEach(court => {
-        if (court.lat && court.lon) {
+        if (court.lat && court.lon && !isNaN(court.lat) && !isNaN(court.lon)) {
             let placemark = new ymaps.Placemark([court.lat, court.lon], {
                 balloonContent: `
                     <b>${court.name}</b><br>
@@ -116,7 +129,7 @@ function addCourts(courts) {
 
             clusterer.add(placemark);
         } else {
-            console.warn(`⚠ Пропускаем ${court.name}, т.к. нет координат`);
+            console.warn(`⚠ Пропускаем ${court.name}, т.к. нет координат или они некорректны`);
         }
     });
 
@@ -124,20 +137,16 @@ function addCourts(courts) {
     console.log("✅ Корты добавлены на карту!");
 }
 
-
 // ✅ Обработчик для кнопки "📍 Найти меня"
 document.getElementById("location-btn").addEventListener("click", function () {
     if (navigator.geolocation) {
-        // Запрашиваем местоположение
         navigator.geolocation.getCurrentPosition(
             function (position) {
                 const userLat = position.coords.latitude;
                 const userLon = position.coords.longitude;
 
-                // Перемещаем карту к местоположению пользователя
-                myMap.setCenter([userLat, userLon], 15); // 15 — уровень zoom
+                myMap.setCenter([userLat, userLon], 15);
 
-                // Добавляем метку на карту
                 const userPlacemark = new ymaps.Placemark([userLat, userLon], {
                     balloonContent: "Вы здесь!"
                 }, {
